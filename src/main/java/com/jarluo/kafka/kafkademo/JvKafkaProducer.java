@@ -1,9 +1,6 @@
 package com.jarluo.kafka.kafkademo;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
@@ -29,6 +26,10 @@ public class JvKafkaProducer extends Thread {
         properties.put(ProducerConfig.CLIENT_ID_CONFIG,"jv-producer");
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        //kafka默认是批量发送
+//        properties.put(ProducerConfig.BATCH_SIZE_CONFIG,"100");
+        //涉及到两次间隔时间 linger.ms 谁先满足就先执行谁
+//        properties.put(ProducerConfig.LINGER_MS_CONFIG,"1000");
         //连接字符串
         //通过工厂
         //通过new
@@ -42,7 +43,14 @@ public class JvKafkaProducer extends Thread {
         String msg = "Jv kafka demo msg:"+num;
         while(num < 20){
             try {
+                //get 会拿到发送的结果
+                //同步 get()->Future() 带阻塞
                 RecordMetadata recordMetadata = producer.send(new ProducerRecord<>(topic,msg)).get();
+                //异步 带回调
+//                RecordMetadata recordMetadata = producer.send(new ProducerRecord<>(topic, msg), (recordMetadata1, e) -> {
+//
+//                }).get();
+
                 System.out.println(recordMetadata.offset()+"->"+recordMetadata.partition()+"->"+recordMetadata.topic());
                 TimeUnit.SECONDS.sleep(2);
                 ++num;
